@@ -1,4 +1,4 @@
-package com.hotelMS.HotelServer;
+package com.hms.HotelServer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
