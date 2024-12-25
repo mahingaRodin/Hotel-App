@@ -1,11 +1,12 @@
 <nz-layout>
-    <nz-sider nzCollapsible nzWidth="200px">
+    <nz-sider [nzCollapsible]="true" [nzWidth]="'200px'">
         <div class="logo"></div>
         <ul nz-menu nzTheme="dark" nzMode="inline">
-            <li nz-menu-item routerLink="/register">
+            <li nz-menu-item [routerLink]="'/register'">
+                <span nz-icon nzType="user"></span>
                 <span><strong>Register</strong></span>
             </li>
-            <li nz-menu-item routerLink="/" >
+            <li nz-menu-item [routerLink]="'/'">
                 <span nz-icon nzType="login"></span>
                 <span><strong>Login</strong></span>
             </li>
@@ -14,12 +15,8 @@
 
     <nz-layout>
         <nz-content>
-            <router-outlet>
-
-            </router-outlet>
+            <router-outlet></router-outlet>
         </nz-content>
-        <nz-footer>
-            
-        </nz-footer>
+        <nz-footer></nz-footer>
     </nz-layout>
 </nz-layout>
