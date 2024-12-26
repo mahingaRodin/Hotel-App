@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { UserOutline, LoginOutline } from '@ant-design/icons-angular/icons'; // Import icons
+import { UserStorageService } from './auth/services/storage/user-storage.service';
 
 @Component({
   selector: 'app-root',
@@ -22,14 +23,38 @@ import { UserOutline, LoginOutline } from '@ant-design/icons-angular/icons'; // 
 })
 export class AppComponent {
   isCollapsed = false;
+  title = 'HotelWeb';
+  isCustomerLoggedIn = false;
+  isAdminLoggedIn = false;
 
-  // Register icons using the NzIconService
-  constructor(private iconService: NzIconService) {
-    this.iconService.addIcon(UserOutline, LoginOutline); // Register icons
+  constructor(private iconService: NzIconService, private router: Router) {
+    // Initialize icons
+    this.iconService.addIcon(UserOutline, LoginOutline);
+
+    // Initialize login states
+    this.initializeLoginStates();
   }
 
-  title = 'HotelWeb';
+  private initializeLoginStates(): void {
+    try {
+      this.isCustomerLoggedIn = UserStorageService.isCustomerLoggedIn();
+      this.isAdminLoggedIn = UserStorageService.isAdminLoggedIn();
+    } catch (error) {
+      console.error('Error initializing login states:', error);
+    }
+  }
 
-  isCustomerLoggedIn: boolean = UserStorageService.isCustomerLoggedIn();
-  isAdminLoggedIn: boolean = UserStorageService.isAdminLoggedIn();
+  ngOnInit() {
+    this.router.events.subscribe(event => {
+      if (event.constructor.name === "NavigationEnd") {
+        this.isCustomerLoggedIn = UserStorageService.isCustomerLoggedIn();
+        this.isAdminLoggedIn = UserStorageService.isAdminLoggedIn();
+      }
+    })
+  }
+
+  logout() {
+    UserStorageService.signOut();
+    this.router.navigateByUrl('/');
+  }
 }
