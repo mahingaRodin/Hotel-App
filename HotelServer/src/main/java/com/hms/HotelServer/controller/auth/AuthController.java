@@ -36,7 +36,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-//    private final UserDetailsService userDetailsService;
     private  final UserService userService;
 
     @PostMapping("/signup")
