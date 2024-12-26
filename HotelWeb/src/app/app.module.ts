@@ -5,28 +5,21 @@ import { DemoNgZorroAntdModule } from './DemoNgZorroAntdModule'; // Ensure corre
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { en_US, NZ_I18N } from 'ng-zorro-antd/i18n';
-import { HttpClientModule } from '@angular/common/http';
-import { AppRoutingModule } from './app.routes'; // Ensure this path is correct
+import { HttpClientModule } from '@angular/common/http';// Corrected import path
+import { AppRoutingModule } from './app.routes'; // Ensure correct path
 import { NzIconModule, NzIconService } from 'ng-zorro-antd/icon';
-import { UserOutline, LoginOutline } from '@ant-design/icons-angular/icons'; // Import icons
+import { UserOutline, LoginOutline } from '@ant-design/icons-angular/icons'; // Import required icons
 
 @NgModule({
   imports: [
-    AppComponent,
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     DemoNgZorroAntdModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
-    NzIconModule, // Import NzIconModule
-  ],
-  providers: [
-    {
-      provide: NZ_I18N,
-      useValue: en_US,
-    },
-  ],
+    NzIconModule,
+  ],// Bootstrap AppComponent
 })
 export class AppModule {
   constructor(private iconService: NzIconService) {

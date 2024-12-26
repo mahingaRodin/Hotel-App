@@ -6,6 +6,7 @@ import { Router } from "@angular/router";
 import { NzFormModule } from "ng-zorro-antd/form";
 import { NzInputModule } from "ng-zorro-antd/input";
 import { error } from "console";
+import { UserStorageService } from "../../services/storage/user-storage.service";
 
 @Component({
   selector: 'app-login',
@@ -37,6 +38,14 @@ export class LoginComponent {
   submitForm() {
     this.authService.login(this.loginForm.value).subscribe(res => {
       console.log(res);
+      if(res.userId != null) {
+        const user = {
+          id: res.userId,
+          role:res.userRole,
+        }
+        UserStorageService.saveUser(user);
+        UserStorageService.saveToken(res.jwt);
+      }
     }, error => {
       this.message
         .error(
