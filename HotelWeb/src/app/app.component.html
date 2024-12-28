@@ -16,21 +16,25 @@
     <nz-sider [nzCollapsible]="true" [nzWidth]="'200px'" *ngIf="isAdminLoggedIn">
         <div class="logo"></div>
         <ul nz-menu nzTheme="dark" nzMode="inline">
+            <li nz-menu-item [routerLink]="'/admin/room'">
+                <span nz-icon nzType="apartment"></span>
+                <span><strong>Post Room</strong></span>
+            </li>
             <li nz-menu-item [routerLink]="'/admin/rooms'">
                 <span nz-icon nzType="apartment"></span>
                 <span><strong>Rooms</strong></span>
             </li>
-            <li nz-menu-item [routerLink]="'/admin/reservations'" >
+            <li nz-menu-item [routerLink]="'/admin/reservations'">
                 <span nz-icon nzType="pull-request"></span>
                 <span><strong>Reservations</strong></span>
             </li>
-            <li nz-menu-item (click)="logout()" >
+            <li nz-menu-item (click)="logout()">
                 <span nz-icon nzType="logout"></span>
                 <span><strong>Logout</strong></span>
             </li>
         </ul>
     </nz-sider>
- 
+
     <nz-sider [nzCollapsible]="true" [nzWidth]="'200px'" *ngIf="isCustomerLoggedIn">
         <div class="logo"></div>
         <ul nz-menu nzTheme="dark" nzMode="inline">
