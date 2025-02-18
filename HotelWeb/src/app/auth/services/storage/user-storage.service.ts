@@ -32,14 +32,19 @@ export class UserStorageService {
 
   static getToken(): string {
     if (this.isBrowser()) {
-      return localStorage.getItem(TOKEN);
+      const token = localStorage.getItem(TOKEN);
+      return token ?? '';
     }
-    return null;
+    return '';
   }
 
   static getUser(): any {
     if (this.isBrowser()) {
-      return JSON.parse(localStorage.getItem(USER));
+      const userStr = localStorage.getItem(USER);
+      if (userStr === null) {
+        return null;
+      }
+      return JSON.parse(userStr);
     }
     return null;
   }

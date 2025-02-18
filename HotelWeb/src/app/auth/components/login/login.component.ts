@@ -1,58 +1,76 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { AuthService } from "../../services/auth/auth.service";
-import { NzMessageService } from "ng-zorro-antd/message";
-import { Router } from "@angular/router";
-import { NzFormModule } from "ng-zorro-antd/form";
-import { NzInputModule } from "ng-zorro-antd/input";
-import { error } from "console";
-import { UserStorageService } from "../../services/storage/user-storage.service";
+import { CommonModule } from '@angular/common';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth/auth.service';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { error } from 'console';
+import { UserStorageService } from '../../services/storage/user-storage.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [NzFormModule, NzInputModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+  ],
+  providers: [AuthService],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-
-  loginForm!: FormGroup;
+  loginForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private message: NzMessageService,
-    private router: Router, 
-
+    private router: Router
   ) {
-  }
-
-  ngOnInit() {
     this.loginForm = this.fb.group({
-      email: [null, [Validators.required, Validators.email]],
-      password: [null, [Validators.required]],
-    })
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+    });
   }
 
   submitForm() {
-    this.authService.login(this.loginForm.value).subscribe(res => {
-      console.log(res);
-      if(res.userId != null) {
-        const user = {
-          id: res.userId,
-          role:res.userRole,
-        }
-        UserStorageService.saveUser(user);
-        UserStorageService.saveToken(res.jwt);
-      }
-    }, error => {
-      this.message
-        .error(
-          `Bad credentials`, 
-          {nzDuration: 5000 }
-      )
-    } )
-  }
+    if (this.loginForm.valid) {
+      this.authService.login(this.loginForm.value).subscribe({
+        next: (response) => {
+          console.log('Login successful', response);
+          if (response.userId != null) {
+            const user = {
+              id: response.userId,
+              role: response.userRole,
+            };
+            UserStorageService.saveUser(user);
+            UserStorageService.saveToken(response.jwt);
 
+            if (UserStorageService.isAdminLoggedIn()) {
+              this.router.navigateByUrl('/admin/dashboard');
+            } else if (UserStorageService.isCustomerLoggedIn()) {
+              this.router.navigateByUrl('/customer/rooms');
+            }
+          }
+        },
+        error: (error) => {
+          console.error('Login failed', error);
+          this.message.error(`Bad credentials`, { nzDuration: 5000 });
+        },
+      });
+    }
+  }
 }
