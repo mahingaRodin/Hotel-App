@@ -67,6 +67,7 @@ public class AuthController {
             authenticationResponse.setUserRole(optionalUser.get().getUserRole());
             authenticationResponse.setUserId(optionalUser.get().getId());
         }
+        System.out.println(userDetails.getAuthorities());
         return authenticationResponse;
     }
 }
