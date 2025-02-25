@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class RoomsServiceImpl implements RoomsService {
     private final RoomRepository roomRepository;
 
+
     public boolean postRoom(RoomDto roomDto) {
         try{
             Room room = new Room();
@@ -30,6 +31,7 @@ public class RoomsServiceImpl implements RoomsService {
             roomRepository.save(room);
             return true;
         } catch (Exception e) {
+
             return false;
         }
     }
