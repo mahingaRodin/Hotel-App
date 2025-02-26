@@ -32,16 +32,16 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
-                request.requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/room").hasAnyAuthority(UserRole.ADMIN.name())
-                        .requestMatchers("/api/customer/**").hasAnyAuthority(UserRole.CUSTOMER.name())
-                        .anyRequest().authenticated())
+                        request.requestMatchers("/api/admin/room").hasAnyAuthority(UserRole.ADMIN.name())
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/customer/**").hasAnyAuthority(UserRole.CUSTOMER.name())
+                                .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .exceptionHandling(e->e.accessDeniedHandler(accessDeniedHandler)
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .authenticationProvider(authenticationProvider()).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                ;
+        ;
 
 
         return http.build();
