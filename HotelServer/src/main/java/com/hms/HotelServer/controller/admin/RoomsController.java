@@ -59,6 +59,7 @@ public class RoomsController {
             roomsService.deleteRoom(id);
             return ResponseEntity.ok(null);
         } catch (EntityNotFoundException e) {
+            System.out.println("Room not present");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
