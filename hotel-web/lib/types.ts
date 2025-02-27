@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface User {
   id: string;
   name: string;
@@ -6,6 +8,9 @@ export interface User {
 }
 
 export interface Room {
+  capacity: ReactNode;
+  images: any;
+  description: ReactNode;
   id: string;
   name: string;
   type: string;
@@ -35,6 +40,7 @@ export interface Booking {
 }
 
 export interface BookingWithRoom extends Booking {
+  guests: ReactNode;
   room: Room;
 }
 

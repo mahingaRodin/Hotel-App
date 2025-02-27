@@ -1,7 +1,6 @@
 @import "tailwindcss/preflight";
 @import "tailwindcss/utilities";
 
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -51,10 +50,14 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border;
+    /* Apply Tailwind's default border utility */
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    /* Apply background color from CSS variable */
+    color: var(--foreground);
+    /* Apply text color from CSS variable */
   }
 }
