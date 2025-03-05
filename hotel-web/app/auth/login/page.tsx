@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/components/authProvider";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function LoginPage() {
@@ -94,7 +94,7 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
             </Button>
-            <div className="text-center text-sm">
+            <div className="text-sm text-center">
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"

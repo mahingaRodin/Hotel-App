@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/components/authProvider";
 import { BedDouble, Menu, User, X } from "lucide-react";
 
 export default function Header() {
@@ -18,13 +18,13 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+      <div className="container flex items-center h-16">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <BedDouble className="h-6 w-6" />
+          <BedDouble className="w-6 h-6" />
           <span>HotelWeb</span>
         </Link>
 
-        <nav className="hidden md:flex ml-10 gap-6">
+        <nav className="hidden gap-6 ml-10 md:flex">
           <Link
             href="/rooms"
             className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -45,7 +45,7 @@ export default function Header() {
               My Bookings
             </Link>
           )}
-          {user?.role === "admin" && (
+          {user?.role === "ADMIN" && (
             <Link
               href="/admin"
               className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -59,11 +59,11 @@ export default function Header() {
           )}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {user ? (
-            <div className="hidden md:flex items-center gap-4">
+            <div className="items-center hidden gap-4 md:flex">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
+                <User className="w-4 h-4" />
                 <span className="text-sm font-medium">{user.name}</span>
               </div>
               <Button variant="outline" size="sm" onClick={logout}>
@@ -71,7 +71,7 @@ export default function Header() {
               </Button>
             </div>
           ) : (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="items-center hidden gap-2 md:flex">
               <Link href="/auth/login">
                 <Button variant="outline" size="sm">
                   Login
@@ -90,9 +90,9 @@ export default function Header() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
+              <X className="w-6 h-6" />
             ) : (
-              <Menu className="h-6 w-6" />
+              <Menu className="w-6 h-6" />
             )}
           </Button>
         </div>
@@ -100,8 +100,8 @@ export default function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t">
-          <div className="container py-4 grid gap-4">
+        <div className="border-t md:hidden">
+          <div className="container grid gap-4 py-4">
             <Link
               href="/rooms"
               className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -124,7 +124,7 @@ export default function Header() {
                 My Bookings
               </Link>
             )}
-            {user?.role === "admin" && (
+            {user?.role === "ADMIN" && (
               <Link
                 href="/admin"
                 className={`text-sm font-medium transition-colors hover:text-primary ${
@@ -141,7 +141,7 @@ export default function Header() {
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t">
                 <div className="flex items-center gap-2 py-2">
-                  <User className="h-4 w-4" />
+                  <User className="w-4 h-4" />
                   <span className="text-sm font-medium">{user.name}</span>
                 </div>
                 <Button
