@@ -46,7 +46,7 @@ export default function LoginPage() {
 
         console.log("API Response status:", response.status);
 
-        // Try to parse the response as JSON
+    
         let data;
         try {
           data = await response.json();
