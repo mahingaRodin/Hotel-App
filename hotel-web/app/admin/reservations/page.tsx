@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,7 +10,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@radix-ui/react-select";
 import {
   Table,
   TableBody,
@@ -19,27 +20,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getAllReservations, updateReservationStatus } from "@/lib/api";
-import type { BookingWithRoom } from "@/lib/types";
+import type { BookingWithRoom, PaginatedResponse } from "@/lib/types";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AdminReservationsPage() {
-  const [reservations, setReservations] = useState<BookingWithRoom[]>([]);
+  const [reservationsData, setReservationsData] =
+    useState<PaginatedResponse<BookingWithRoom> | null>(null);
   const [filteredReservations, setFilteredReservations] = useState<
     BookingWithRoom[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     async function fetchReservations() {
       try {
-        const data = await getAllReservations();
-        setReservations(data);
-        setFilteredReservations(data);
+        const data = await getAllReservations(currentPage);
+        setReservationsData(data);
+        setFilteredReservations(data.content);
       } catch (error) {
         toast({
           title: "Error",
@@ -52,30 +55,32 @@ export default function AdminReservationsPage() {
     }
 
     fetchReservations();
-  }, [toast]);
+  }, [toast, currentPage]);
 
   useEffect(() => {
-    let filtered = reservations;
+    if (reservationsData) {
+      let filtered = [...reservationsData.content];
 
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (reservation) => reservation.status === statusFilter
-      );
+      // Apply status filter
+      if (statusFilter !== "all") {
+        filtered = filtered.filter(
+          (reservation) => reservation.status === statusFilter
+        );
+      }
+
+      // Apply search filter
+      if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (reservation) =>
+            reservation.room.name.toLowerCase().includes(query) ||
+            reservation.id.toLowerCase().includes(query)
+        );
+      }
+
+      setFilteredReservations(filtered);
     }
-
-    // Apply search filter
-    if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (reservation) =>
-          reservation.room.name.toLowerCase().includes(query) ||
-          reservation.id.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredReservations(filtered);
-  }, [searchQuery, statusFilter, reservations]);
+  }, [searchQuery, statusFilter, reservationsData]);
 
   const handleStatusChange = async (
     reservationId: string,
@@ -84,14 +89,10 @@ export default function AdminReservationsPage() {
     try {
       await updateReservationStatus(reservationId, newStatus);
 
-      // Update local state
-      setReservations(
-        reservations.map((reservation) =>
-          reservation.id === reservationId
-            ? { ...reservation, status: newStatus as any }
-            : reservation
-        )
-      );
+      // Refresh the reservations list
+      const data = await getAllReservations(currentPage);
+      setReservationsData(data);
+      setFilteredReservations(data.content);
 
       toast({
         title: "Status updated",
@@ -106,10 +107,22 @@ export default function AdminReservationsPage() {
     }
   };
 
+  const handlePreviousPage = () => {
+    if (reservationsData && !reservationsData.first) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (reservationsData && !reservationsData.last) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Reservation Management</h1>
+      <div className="container py-8 mx-auto">
+        <h1 className="mb-8 text-3xl font-bold">Reservation Management</h1>
         <div className="flex justify-center items-center min-h-[400px]">
           <p>Loading reservations...</p>
         </div>
@@ -118,15 +131,15 @@ export default function AdminReservationsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Reservation Management</h1>
+    <div className="container py-8 mx-auto">
+      <h1 className="mb-8 text-3xl font-bold">Reservation Management</h1>
 
       <Card>
         <CardHeader>
           <CardTitle>All Reservations</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex flex-col gap-4 mb-4 md:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -143,10 +156,10 @@ export default function AdminReservationsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -168,7 +181,7 @@ export default function AdminReservationsPage() {
               <TableBody>
                 {filteredReservations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={8} className="py-8 text-center">
                       No reservations found
                     </TableCell>
                   </TableRow>
@@ -188,23 +201,23 @@ export default function AdminReservationsPage() {
                       <TableCell>
                         <div
                           className={`px-2 py-1 text-xs rounded-full inline-block ${
-                            reservation.status === "confirmed"
+                            reservation.status === "CONFIRMED"
                               ? "bg-green-100 text-green-800"
-                              : reservation.status === "pending"
+                              : reservation.status === "PENDING"
                               ? "bg-yellow-100 text-yellow-800"
-                              : reservation.status === "cancelled"
+                              : reservation.status === "CANCELLED"
                               ? "bg-red-100 text-red-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {reservation.status.charAt(0).toUpperCase() +
-                            reservation.status.slice(1)}
+                          {reservation.status.charAt(0) +
+                            reservation.status.slice(1).toLowerCase()}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <Select
                           defaultValue={reservation.status}
-                          onValueChange={(value) =>
+                          onValueChange={(value: string) =>
                             handleStatusChange(reservation.id, value)
                           }
                         >
@@ -212,10 +225,10 @@ export default function AdminReservationsPage() {
                             <SelectValue placeholder="Change status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirm</SelectItem>
-                            <SelectItem value="cancelled">Cancel</SelectItem>
-                            <SelectItem value="completed">Complete</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="CONFIRMED">Confirm</SelectItem>
+                            <SelectItem value="CANCELLED">Cancel</SelectItem>
+                            <SelectItem value="COMPLETED">Complete</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -225,6 +238,34 @@ export default function AdminReservationsPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {reservationsData && reservationsData.totalPages > 1 && (
+            <div className="flex gap-4 justify-center items-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={reservationsData.first}
+              >
+                <ChevronLeft className="mr-1 w-4 h-4" />
+                Previous
+              </Button>
+              <span className="text-sm">
+                Page {reservationsData.number + 1} of{" "}
+                {reservationsData.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={reservationsData.last}
+              >
+                Next
+                <ChevronRight className="ml-1 w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

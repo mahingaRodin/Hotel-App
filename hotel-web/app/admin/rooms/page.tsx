@@ -13,25 +13,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getAllRooms, deleteRoom } from "@/lib/api";
-import type { Room } from "@/lib/types";
+import type { Room, PaginatedResponse } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { Edit, Plus, Search, Trash } from "lucide-react";
+import {
+  Edit,
+  Plus,
+  Search,
+  Trash,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function AdminRoomsPage() {
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomsData, setRoomsData] = useState<PaginatedResponse<Room> | null>(
+    null
+  );
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     async function fetchRooms() {
       try {
-        const data = await getAllRooms();
-        setRooms(data);
-        setFilteredRooms(data);
+        const data = await getAllRooms(currentPage);
+        setRoomsData(data);
+        setFilteredRooms(data.content);
       } catch (error) {
         toast({
           title: "Error",
@@ -44,28 +54,35 @@ export default function AdminRoomsPage() {
     }
 
     fetchRooms();
-  }, [toast]);
+  }, [toast, currentPage]);
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredRooms(rooms);
-    } else {
-      const query = searchQuery.toLowerCase();
-      setFilteredRooms(
-        rooms.filter(
-          (room) =>
-            room.name.toLowerCase().includes(query) ||
-            room.description.toLowerCase().includes(query)
-        )
-      );
+    if (roomsData) {
+      if (searchQuery.trim() === "") {
+        setFilteredRooms(roomsData.content);
+      } else {
+        const query = searchQuery.toLowerCase();
+        setFilteredRooms(
+          roomsData.content.filter(
+            (room) =>
+              room.name.toLowerCase().includes(query) ||
+              room.description.toLowerCase().includes(query)
+          )
+        );
+      }
     }
-  }, [searchQuery, rooms]);
+  }, [searchQuery, roomsData]);
 
   const handleDeleteRoom = async (roomId: string) => {
     if (window.confirm("Are you sure you want to delete this room?")) {
       try {
         await deleteRoom(roomId);
-        setRooms(rooms.filter((room) => room.id !== roomId));
+
+        // Refresh the room list
+        const data = await getAllRooms(currentPage);
+        setRoomsData(data);
+        setFilteredRooms(data.content);
+
         toast({
           title: "Room deleted",
           description: "The room has been deleted successfully.",
@@ -80,10 +97,22 @@ export default function AdminRoomsPage() {
     }
   };
 
+  const handlePreviousPage = () => {
+    if (roomsData && !roomsData.first) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (roomsData && !roomsData.last) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Room Management</h1>
+      <div className="container py-8 mx-auto">
+        <h1 className="mb-8 text-3xl font-bold">Room Management</h1>
         <div className="flex justify-center items-center min-h-[400px]">
           <p>Loading rooms...</p>
         </div>
@@ -92,12 +121,12 @@ export default function AdminRoomsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container py-8 mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Room Management</h1>
         <Link href="/admin/rooms/new">
           <Button>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 w-4 h-4" />
             Add New Room
           </Button>
         </Link>
@@ -137,7 +166,7 @@ export default function AdminRoomsPage() {
               <TableBody>
                 {filteredRooms.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={5} className="py-8 text-center">
                       No rooms found
                     </TableCell>
                   </TableRow>
@@ -149,14 +178,14 @@ export default function AdminRoomsPage() {
                       <TableCell>
                         {formatCurrency(room.pricePerNight)}
                       </TableCell>
-                      <TableCell className="hidden md:table-cell max-w-xs truncate">
+                      <TableCell className="hidden max-w-xs truncate md:table-cell">
                         {room.description}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex gap-2 justify-end">
                           <Link href={`/admin/rooms/${room.id}`}>
                             <Button variant="outline" size="icon">
-                              <Edit className="h-4 w-4" />
+                              <Edit className="w-4 h-4" />
                               <span className="sr-only">Edit</span>
                             </Button>
                           </Link>
@@ -165,7 +194,7 @@ export default function AdminRoomsPage() {
                             size="icon"
                             onClick={() => handleDeleteRoom(room.id)}
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className="w-4 h-4" />
                             <span className="sr-only">Delete</span>
                           </Button>
                         </div>
@@ -176,6 +205,33 @@ export default function AdminRoomsPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {roomsData && roomsData.totalPages > 1 && (
+            <div className="flex gap-4 justify-center items-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={roomsData.first}
+              >
+                <ChevronLeft className="mr-1 w-4 h-4" />
+                Previous
+              </Button>
+              <span className="text-sm">
+                Page {roomsData.number + 1} of {roomsData.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={roomsData.last}
+              >
+                Next
+                <ChevronRight className="ml-1 w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

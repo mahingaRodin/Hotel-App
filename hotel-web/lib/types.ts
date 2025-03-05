@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 export interface User {
   id: string;
   name: string;
@@ -8,14 +6,15 @@ export interface User {
 }
 
 export interface Room {
-  capacity: ReactNode;
-  images: any;
-  description: ReactNode;
   id: string;
   name: string;
-  type: string;
-  price: number;
-  available: boolean;
+  description: string;
+  capacity: number;
+  pricePerNight: number;
+  amenities: string[];
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Booking {
@@ -24,28 +23,37 @@ export interface Booking {
   userId: string;
   checkIn: string;
   checkOut: string;
+  guests: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
   totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
   createdAt: string;
   updatedAt: string;
-  room?: {
-    id: string;
-    type: string;
-    name: string;
-  };
-  user?: {
-    id: string;
-    name: string;
-  };
+  room?: Room;
 }
 
 export interface BookingWithRoom extends Booking {
-  guests: ReactNode;
   room: Room;
 }
 
 export interface RoomFilters {
   checkIn?: string;
   checkOut?: string;
-  price?: number;
+  capacity?: number;
+}
+
+export interface AuthResponse {
+  jwt: string;
+  userId: string;
+  userRole: "CUSTOMER" | "ADMIN";
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }

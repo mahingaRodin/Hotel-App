@@ -5,6 +5,11 @@ import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { User } from "@/lib/types";
+import {
+  login as apiLogin,
+  register as apiRegister,
+  logout as apiLogout,
+} from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
@@ -28,31 +33,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Check if user is logged in on initial load
   useEffect(() => {
-    async function loadUserFromSession() {
+    function loadUserFromLocalStorage() {
       try {
-        const response = await fetch("/api/auth/session", {
-          credentials: "include",
-        });
+        const token = localStorage.getItem("jwt_token");
+        const userId = localStorage.getItem("user_id");
+        const userRole = localStorage.getItem("user_role");
 
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
+        if (token && userId && userRole) {
+          setUser({
+            id: userId,
+            name: "User",
+            email: "",
+            role: userRole as "CUSTOMER" | "ADMIN",
+          });
         } else {
-          // Handle non-OK responses
-          console.log("Session not found or error:", response.status);
           setUser(null);
         }
       } catch (error) {
-        console.error("Failed to load user session:", error);
+        console.error("Failed to load user from localStorage:", error);
         setUser(null);
       } finally {
         setLoading(false);
       }
     }
 
-    loadUserFromSession();
+    loadUserFromLocalStorage();
   }, []);
 
   // Redirect based on auth status and current route
@@ -60,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     // Protected admin routes
-    if (pathname?.startsWith("/admin") && (!user || user.role !== "admin")) {
+    if (pathname?.startsWith("/admin") && (!user || user.role !== "ADMIN")) {
       router.push("/auth/login");
     }
 
@@ -71,28 +77,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Redirect logged in users away from auth pages
     if (user && pathname?.startsWith("/auth")) {
-      router.push(user.role === "admin" ? "/admin" : "/dashboard");
+      router.push(user.role === "ADMIN" ? "/admin" : "/dashboard");
     }
   }, [user, loading, pathname, router]);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
+      const response = await apiLogin(email, password);
+
+      setUser({
+        id: response.userId,
+        name: "User", // The API doesn't return the name, so this is a placeholder
+        email: email,
+        role: response.userRole,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Login failed");
-      }
-
-      const data = await response.json();
-      setUser(data.user);
-
-      router.push(data.user.role === "admin" ? "/admin" : "/dashboard");
+      router.push(response.userRole === "ADMIN" ? "/admin" : "/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -101,21 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Registration failed");
-      }
-
-      const data = await response.json();
-      setUser(data.user);
-
+      await apiRegister({ name, email, password });
+      await login(email, password);
       router.push("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
@@ -125,10 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiLogout();
 
       setUser(null);
       router.push("/");
