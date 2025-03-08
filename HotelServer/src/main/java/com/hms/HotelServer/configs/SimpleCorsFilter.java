@@ -25,11 +25,20 @@ public class SimpleCorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
 
         String originHeader = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", originHeader);
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE");
+        if (originHeader != null) {
+            response.setHeader("Access-Control-Allow-Origin", originHeader);
+        } else {
+            response.setHeader("Access-Control-Allow-Origin", "*"); // Default for testing
+        }
+
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE, PATCH");
         response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Headers",
+                "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token");
         response.setHeader("Access-Control-Max-Age", "3600");
+
+        System.out.println("CORS Filter applied for origin: " + originHeader);
+
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
