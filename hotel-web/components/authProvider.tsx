@@ -4,7 +4,7 @@ import type React from "react";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import type { User } from "@/lib/types";
+import type { User, AuthResponse } from "@/lib/types";
 import {
   login as apiLogin,
   register as apiRegister,
@@ -83,11 +83,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiLogin(email, password);
+      const response: AuthResponse = await apiLogin(email, password);
+
+      localStorage.setItem("jwt_token", response.jwt);
+      localStorage.setItem("user_id", response.userId.toString());
+      localStorage.setItem("user_role", response.userRole);
 
       setUser({
-        id: response.userId,
-        name: "User", // The API doesn't return the name, so this is a placeholder
+        id: response.userId.toString(),
+        name: "User",
         email: email,
         role: response.userRole,
       });
