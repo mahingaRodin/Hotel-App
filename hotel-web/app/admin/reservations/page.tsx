@@ -42,13 +42,14 @@ export default function AdminReservationsPage() {
       try {
         const data = await getAllReservations(currentPage);
         setReservationsData(data);
-        setFilteredReservations(data.content);
+        setFilteredReservations(data?.content || []);
       } catch (error) {
         toast({
           title: "Error",
           description: "Failed to load reservations. Please try again.",
           variant: "destructive",
         });
+        setFilteredReservations([]);
       } finally {
         setLoading(false);
       }
@@ -58,7 +59,7 @@ export default function AdminReservationsPage() {
   }, [toast, currentPage]);
 
   useEffect(() => {
-    if (reservationsData) {
+    if (reservationsData && reservationsData.content) {
       let filtered = [...reservationsData.content];
 
       // Apply status filter
@@ -164,7 +165,7 @@ export default function AdminReservationsPage() {
             </Select>
           </div>
 
-          <div className="rounded-md border">
+          <div className="border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -201,11 +202,11 @@ export default function AdminReservationsPage() {
                       <TableCell>
                         <div
                           className={`px-2 py-1 text-xs rounded-full inline-block ${
-                            reservation.status === "CONFIRMED"
+                            reservation.status === "APPROVED"
                               ? "bg-green-100 text-green-800"
                               : reservation.status === "PENDING"
                               ? "bg-yellow-100 text-yellow-800"
-                              : reservation.status === "CANCELLED"
+                              : reservation.status === "REJECTED"
                               ? "bg-red-100 text-red-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
@@ -241,14 +242,14 @@ export default function AdminReservationsPage() {
 
           {/* Pagination */}
           {reservationsData && reservationsData.totalPages > 1 && (
-            <div className="flex gap-4 justify-center items-center mt-4">
+            <div className="flex items-center justify-center gap-4 mt-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePreviousPage}
                 disabled={reservationsData.first}
               >
-                <ChevronLeft className="mr-1 w-4 h-4" />
+                <ChevronLeft className="w-4 h-4 mr-1" />
                 Previous
               </Button>
               <span className="text-sm">
@@ -262,7 +263,7 @@ export default function AdminReservationsPage() {
                 disabled={reservationsData.last}
               >
                 Next
-                <ChevronRight className="ml-1 w-4 h-4" />
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           )}

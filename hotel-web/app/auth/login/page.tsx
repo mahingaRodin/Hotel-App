@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/authProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,86 +25,32 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const { login } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsLoading(true);
-    setErrorMessage("");
 
     try {
-      console.log("Attempting to login with:", { email });
+      console.log("Attempting login with:", { email, password });
 
-      // Check if the API endpoint is reachable
-      try {
-        const response = await fetch("http://localhost:8080/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-          credentials: "include"
-        });
+      const response = await login(email, password);
+      console.log("Login response:", response);
 
-        console.log("API Response status:", response.status);
-
-    
-        let data;
-        try {
-          data = await response.json();
-          console.log("API Response data:", data);
-        } catch (jsonError) {
-          console.error("Failed to parse JSON response:", jsonError);
-          throw new Error("Invalid response from server");
-        }
-
-        if (!response.ok) {
-          throw new Error(
-            data.message || `Login failed with status: ${response.status}`
-          );
-        }
-
-        // Handle successful response
-        console.log("Login successful, processing response data");
-
-        if (data.token) {
-          console.log("Token received, storing in localStorage");
-          localStorage.setItem("authToken", data.token);
-        } else {
-          console.warn("No token received from API");
-        }
-
-        // Call the login function from auth context if it exists
-        if (typeof login === "function") {
-          console.log("Calling auth context login function");
-          await login(email, password);
-        } else {
-          console.warn("Auth context login function not available");
-        }
-
-        toast({
-          title: "Login successful",
-          description: "You have been logged in successfully.",
-        });
-
-        console.log("Login process completed successfully");
-      } catch (fetchError) {
-        console.error("Fetch error:", fetchError);
-        throw fetchError;
+      if (response === undefined || response === null) {
+        throw new Error("Empty response from server");
       }
+      // Handle successful login
+      router.push(
+        response && typeof response === 'object' && 'userRole' in response && (response as {userRole?: string}).userRole === "ADMIN"
+          ? "/admin"
+          : "/dashboard"
+      );
     } catch (error) {
       console.error("Login error:", error);
-
-      // Set a more detailed error message
-      const errorMsg =
-        error instanceof Error
-          ? error.message
-          : "An error occurred during login.";
-
-      setErrorMessage(errorMsg);
-
       toast({
-        title: "Login failed",
-        description: errorMsg,
+        title: "Error",
+        description: error instanceof Error ? error.message : "Login failed",
         variant: "destructive",
       });
     } finally {
@@ -134,7 +81,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"

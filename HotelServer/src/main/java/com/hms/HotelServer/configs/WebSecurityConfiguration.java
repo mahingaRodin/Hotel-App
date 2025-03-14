@@ -3,7 +3,6 @@ package com.hms.HotelServer.configs;
 import com.hms.HotelServer.enums.UserRole;
 import com.hms.HotelServer.services.jwt.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.filters.CorsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -32,24 +31,25 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 public class WebSecurityConfiguration {
     private final UserService userService;
-    private  final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Corrected this line
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/api/admin/**").hasAnyAuthority(UserRole.ADMIN.name())
                                 .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/customer/**").hasAnyAuthority(UserRole.CUSTOMER.name())
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
-                .exceptionHandling(e->e.accessDeniedHandler(accessDeniedHandler)
+                .exceptionHandling(e -> e.accessDeniedHandler(accessDeniedHandler)
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
-                .authenticationProvider(authenticationProvider()).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        ;
-
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -65,11 +65,6 @@ public class WebSecurityConfiguration {
         authProvider.setUserDetailsService(userService.userDetailsService());
         authProvider.setPasswordEncoder(new BCryptPasswordEncoder());
         return authProvider;
-    }
-
-    @Bean
-    public CorsFilter corsFilter() {
-        return new CorsFilter();
     }
 
     @Bean

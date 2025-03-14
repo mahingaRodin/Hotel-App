@@ -17,6 +17,12 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+    private final TokenBlacklist tokenBlacklist;
+
+    public JwtUtil(TokenBlacklist tokenBlacklist) {
+        this.tokenBlacklist = tokenBlacklist;
+    }
+
     private String generateToken(Map<String, Object> extraClaims, UserDetails details) {
     return Jwts.builder().setClaims(extraClaims).setSubject(details.getUsername())
             .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -29,9 +35,14 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token , UserDetails userDetails) {
-        final String userName = extractUserName(token);
+        final String jwt = extractUserName(token);
 
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if(tokenBlacklist.isBlackListed(jwt)) {
+            System.out.println("Your session has expired, Try to login again");
+            return false;
+        }
+
+        return (jwt.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();

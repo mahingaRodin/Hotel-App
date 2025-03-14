@@ -1,3 +1,5 @@
+import { SetStateAction } from "react";
+
 export interface User {
   id: string;
   name: string;
@@ -24,7 +26,7 @@ export interface Booking {
   checkIn: string;
   checkOut: string;
   guests: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+  status: "PENDING" | "APPROVED" | "REJECTED";
   totalPrice: number;
   createdAt: string;
   updatedAt: string;
@@ -48,6 +50,7 @@ export interface AuthResponse {
 }
 
 export interface PaginatedResponse<T> {
+  data: SetStateAction<BookingWithRoom[]>;
   content: T[];
   totalPages: number;
   totalElements: number;

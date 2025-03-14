@@ -45,8 +45,8 @@ export default function AdminDashboardPage() {
           getAllReservations(),
           getAllRooms(),
         ]);
-        setReservations(reservationsData);
-        setRooms(roomsData);
+        setReservations(reservationsData.data);
+        setRooms(roomsData.data as Room[]);
       } catch (error) {
         toast({
           title: "Error",
@@ -67,18 +67,18 @@ export default function AdminDashboardPage() {
     0
   );
   const confirmedBookings = reservations.filter(
-    (booking) => booking.status === "confirmed"
+    (booking) => booking.status === "APPROVED"
   ).length;
   const occupiedRooms = reservations.filter(
     (booking) =>
-      booking.status === "confirmed" &&
+      booking.status === "APPROVED" &&
       new Date(booking.checkIn) <= new Date() &&
       new Date(booking.checkOut) >= new Date()
   ).length;
   const activeGuests = reservations
     .filter(
       (booking) =>
-        booking.status === "confirmed" &&
+        booking.status === "APPROVED" &&
         new Date(booking.checkIn) <= new Date() &&
         new Date(booking.checkOut) >= new Date()
     )
@@ -92,8 +92,8 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      <div className="container py-8 mx-auto">
+        <h1 className="mb-8 text-3xl font-bold">Dashboard</h1>
         <div className="flex justify-center items-center min-h-[400px]">
           <p>Loading dashboard data...</p>
         </div>
@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container py-8 mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button asChild>
@@ -110,11 +110,11 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center text-xs text-muted-foreground">
               {calculatePercentageChange(totalRevenue, previousRevenue) > 0 ? (
                 <>
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
+                  <ArrowUpRight className="mr-1 w-4 h-4 text-green-500" />
                   <span className="text-green-500">
                     {calculatePercentageChange(
                       totalRevenue,
@@ -134,7 +134,7 @@ export default function AdminDashboardPage() {
                 </>
               ) : (
                 <>
-                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
+                  <ArrowDownRight className="mr-1 w-4 h-4 text-red-500" />
                   <span className="text-red-500">
                     {Math.abs(
                       calculatePercentageChange(totalRevenue, previousRevenue)
@@ -148,9 +148,9 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Bookings</CardTitle>
-            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+            <CalendarCheck className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{confirmedBookings}</div>
@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
               {calculatePercentageChange(confirmedBookings, previousBookings) >
               0 ? (
                 <>
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
+                  <ArrowUpRight className="mr-1 w-4 h-4 text-green-500" />
                   <span className="text-green-500">
                     {calculatePercentageChange(
                       confirmedBookings,
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
                 </>
               ) : (
                 <>
-                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
+                  <ArrowDownRight className="mr-1 w-4 h-4 text-red-500" />
                   <span className="text-red-500">
                     {Math.abs(
                       calculatePercentageChange(
@@ -186,11 +186,11 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">
               Room Occupancy
             </CardTitle>
-            <BedDouble className="h-4 w-4 text-muted-foreground" />
+            <BedDouble className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
               {calculatePercentageChange(occupiedRooms, previousOccupancy) >
               0 ? (
                 <>
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
+                  <ArrowUpRight className="mr-1 w-4 h-4 text-green-500" />
                   <span className="text-green-500">
                     {calculatePercentageChange(
                       occupiedRooms,
@@ -211,7 +211,7 @@ export default function AdminDashboardPage() {
                 </>
               ) : (
                 <>
-                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
+                  <ArrowDownRight className="mr-1 w-4 h-4 text-red-500" />
                   <span className="text-red-500">
                     {Math.abs(
                       calculatePercentageChange(
@@ -228,16 +228,16 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">Active Guests</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeGuests}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               {calculatePercentageChange(activeGuests, previousGuests) > 0 ? (
                 <>
-                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
+                  <ArrowUpRight className="mr-1 w-4 h-4 text-green-500" />
                   <span className="text-green-500">
                     {calculatePercentageChange(
                       activeGuests,
@@ -248,7 +248,7 @@ export default function AdminDashboardPage() {
                 </>
               ) : (
                 <>
-                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
+                  <ArrowDownRight className="mr-1 w-4 h-4 text-red-500" />
                   <span className="text-red-500">
                     {Math.abs(
                       calculatePercentageChange(activeGuests, previousGuests)
@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
                 {reservations.slice(0, 5).map((booking) => (
                   <div
                     key={booking.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex justify-between items-center p-4 rounded-lg border"
                   >
                     <div className="space-y-1">
                       <p className="font-medium">{booking.room.name}</p>
@@ -291,18 +291,18 @@ export default function AdminDashboardPage() {
                         {formatDate(booking.checkOut)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex gap-4 items-center">
                       <div className="text-right">
                         <p className="font-medium">
                           {formatCurrency(booking.totalPrice)}
                         </p>
                         <p
                           className={`text-sm ${
-                            booking.status === "confirmed"
+                            booking.status === "CONFIRMED"
                               ? "text-green-500"
-                              : booking.status === "pending"
+                              : booking.status === "PENDING"
                               ? "text-yellow-500"
-                              : booking.status === "cancelled"
+                              : booking.status === "REJECTED"
                               ? "text-red-500"
                               : "text-blue-500"
                           }`}
@@ -351,7 +351,7 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={room.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex justify-between items-center p-4 rounded-lg border"
                     >
                       <div className="space-y-1">
                         <p className="font-medium">{room.name}</p>
@@ -359,12 +359,12 @@ export default function AdminDashboardPage() {
                           Capacity: {room.capacity} guests
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex gap-4 items-center">
                         <div
                           className={`px-3 py-1 rounded-full text-sm ${
                             isOccupied
-                              ? "bg-red-100 text-red-800"
-                              : "bg-green-100 text-green-800"
+                              ? "text-red-800 bg-red-100"
+                              : "text-green-800 bg-green-100"
                           }`}
                         >
                           {isOccupied ? "Occupied" : "Available"}
@@ -397,11 +397,11 @@ export default function AdminDashboardPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium">
                       Average Daily Rate
                     </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
@@ -414,11 +414,11 @@ export default function AdminDashboardPage() {
                 </Card>
 
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardHeader className="flex flex-row justify-between items-center pb-2 space-y-0">
                     <CardTitle className="text-sm font-medium">
                       Occupancy Rate
                     </CardTitle>
-                    <Percent className="h-4 w-4 text-muted-foreground" />
+                    <Percent className="w-4 h-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
