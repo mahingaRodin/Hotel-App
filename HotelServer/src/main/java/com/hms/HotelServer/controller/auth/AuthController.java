@@ -9,6 +9,8 @@ import com.hms.HotelServer.repository.UserRepository;
 import com.hms.HotelServer.services.auth.AuthService;
 import com.hms.HotelServer.services.jwt.UserService;
 import com.hms.HotelServer.util.JwtUtil;
+import com.hms.HotelServer.dto.LogoutRequest;
+import com.hms.HotelServer.util.TokenBlacklist;
 import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +37,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private  final UserService userService;
+    private final TokenBlacklist tokenBlacklist;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signupUser(@RequestBody SignupRequest signupRequest) {
@@ -67,6 +71,14 @@ public class AuthController {
             authenticationResponse.setUserRole(optionalUser.get().getUserRole());
             authenticationResponse.setUserId(optionalUser.get().getId());
         }
-        return authenticationResponse;
+        return ResponseEntity.ok(authenticationResponse).getBody();
+    }
+
+    @PostMapping("logout")
+    public ResponseEntity<?> logoutUser(@RequestBody LogoutRequest logoutRequest) {
+        String token = logoutRequest.getToken();
+        tokenBlacklist.addToBlackList(token);
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logout Successful!");
     }
 }
