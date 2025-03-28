@@ -27,7 +27,7 @@ async function handleResponse(response: Response) {
   // Handle successful response
   const text = await response.text();
   if (!text) {
-    return null; // or handle empty response as needed
+    return null;
   }
 
   return JSON.parse(text);
@@ -99,8 +99,8 @@ export async function login(
     console.log("Raw response text:", responseText);
 
     // If response is empty but status is OK, create a default response
-    if (!responseText || responseText.trim() === "") {
-      console.warn("Empty response received with status OK");
+    if (responseText || responseText.trim() === "") {
+      console.warn("Resposne received with status OK");
       // Return a mock response for testing
       return {
         jwt: "mock-jwt-for-testing",

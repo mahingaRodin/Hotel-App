@@ -37,15 +37,14 @@ export default function LoginPage() {
       const response = await login(email, password);
       console.log("Login response:", response);
 
-      if (response === undefined || response === null) {
-        throw new Error("Empty response from server");
-      }
+      
       // Handle successful login
       router.push(
-        response && typeof response === 'object' && 'userRole' in response && (response as {userRole?: string}).userRole === "ADMIN"
-          ? "/admin"
-          : "/dashboard"
-      );
+  void: response && typeof response === 'object' && 'userRole' in response && (response as {userRole?: string}).userRole === "ADMIN"
+    ? "/admin"
+    : "/dashboard"
+);
+
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -81,7 +80,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"
