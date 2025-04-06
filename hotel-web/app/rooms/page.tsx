@@ -55,13 +55,13 @@ const rooms = [
 const getAmenityIcon = (amenity: string) => {
   switch (amenity) {
     case "Free WiFi":
-      return <Wifi className="h-4 w-4" />;
+      return <Wifi className="w-4 h-4" />;
     case "TV":
-      return <Tv className="h-4 w-4" />;
+      return <Tv className="w-4 h-4" />;
     case "Coffee Maker":
-      return <Coffee className="h-4 w-4" />;
+      return <Coffee className="w-4 h-4" />;
     case "Room Service":
-      return <UtensilsCrossed className="h-4 w-4" />;
+      return <UtensilsCrossed className="w-4 h-4" />;
     default:
       return null;
   }
@@ -69,19 +69,19 @@ const getAmenityIcon = (amenity: string) => {
 
 export default function RoomsPage() {
   return (
-    <div className="container mx-auto py-8">
+    <div className="container py-8 mx-auto">
       <div className="flex flex-col items-center justify-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Our Rooms</h1>
-        <p className="text-muted-foreground text-center max-w-2xl">
+        <h1 className="mb-2 text-3xl font-bold">Our Rooms</h1>
+        <p className="max-w-2xl text-center text-muted-foreground">
           Discover our selection of comfortable and luxurious rooms, designed to
           make your stay memorable.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {rooms.map((room) => (
           <Card key={room.id} className="overflow-hidden">
-            <div className="relative h-48 w-full">
+            <div className="relative w-full h-48">
               <Image
                 src={room.images[0] || "/placeholder.svg"}
                 alt={room.name}
@@ -95,7 +95,7 @@ export default function RoomsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 mb-4">
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
                   Up to {room.capacity} guests
                 </span>
@@ -105,7 +105,7 @@ export default function RoomsPage() {
                 {room.amenities.slice(0, 4).map((amenity) => (
                   <div
                     key={amenity}
-                    className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-md"
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-muted"
                   >
                     {getAmenityIcon(amenity)}
                     <span>{amenity}</span>

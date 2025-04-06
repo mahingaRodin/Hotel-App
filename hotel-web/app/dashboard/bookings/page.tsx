@@ -79,9 +79,9 @@ export default function UserBookingsPage() {
       <div className="container py-8 mx-auto">
         <h1 className="mb-8 text-3xl font-bold">My Bookings</h1>
         <Card>
-          <CardContent className="flex flex-col justify-center items-center py-12">
+          <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="space-y-4 text-center">
-              <Calendar className="mx-auto w-12 h-12 text-muted-foreground" />
+              <Calendar className="w-12 h-12 mx-auto text-muted-foreground" />
               <h2 className="text-xl font-semibold">No bookings found</h2>
               <p className="text-muted-foreground">
                 You haven't made any bookings yet.
@@ -123,18 +123,18 @@ export default function UserBookingsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <div className="flex gap-2 items-center">
+                      <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           {formatDate(booking.checkIn)} -{" "}
                           {formatDate(booking.checkOut)}
                         </span>
                       </div>
-                      <div className="flex gap-2 items-center">
+                      <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">{booking.guests} guests</span>
                       </div>
-                      <div className="flex gap-2 items-center">
+                      <div className="flex items-center gap-2">
                         <BedDouble className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           Room capacity: {booking.room.capacity}
@@ -142,20 +142,20 @@ export default function UserBookingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex gap-2 items-center">
+                      <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           Total: {formatCurrency(booking.totalPrice)}
                         </span>
                       </div>
-                      <div className="flex gap-2 items-center">
+                      <div className="flex items-center gap-2">
                         <div
                           className={`px-2 py-1 text-xs rounded-full ${
-                            booking.status === "CONFIRMED"
+                            booking.status === "APPROVED"
                               ? "bg-green-100 text-green-800"
                               : booking.status === "PENDING"
                               ? "bg-yellow-100 text-yellow-800"
-                              : booking.status === "CANCELLED"
+                              : booking.status === "REJECTED"
                               ? "bg-red-100 text-red-800"
                               : "bg-blue-100 text-blue-800"
                           }`}
@@ -185,14 +185,14 @@ export default function UserBookingsPage() {
 
       {/* Pagination */}
       {bookingsData.totalPages > 1 && (
-        <div className="flex gap-4 justify-center items-center mt-8">
+        <div className="flex items-center justify-center gap-4 mt-8">
           <Button
             variant="outline"
             size="sm"
             onClick={handlePreviousPage}
             disabled={bookingsData.first}
           >
-            <ChevronLeft className="mr-1 w-4 h-4" />
+            <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
           </Button>
           <span className="text-sm">
@@ -205,7 +205,7 @@ export default function UserBookingsPage() {
             disabled={bookingsData.last}
           >
             Next
-            <ChevronRight className="ml-1 w-4 h-4" />
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       )}
