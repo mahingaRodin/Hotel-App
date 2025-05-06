@@ -23,7 +23,7 @@ const room = {
   capacity: 2,
   pricePerNight: 199,
   size: "32 m²",
-  type: "King",
+  bedType: "King",
   amenities: [
     "Free WiFi",
     "TV with streaming",
@@ -45,22 +45,22 @@ const room = {
 
 export default function RoomDetailPage({ params }: { params: { id: string } }) {
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="container py-8 mx-auto">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <h1 className="text-3xl font-bold mb-4">{room.name}</h1>
+          <h1 className="mb-4 text-3xl font-bold">{room.name}</h1>
 
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex items-center gap-1 text-sm">
-              <BedDouble className="h-4 w-4 text-muted-foreground" />
-              <span>{room.type} Bed</span>
+              <BedDouble className="w-4 h-4 text-muted-foreground" />
+              <span>{room.bedType} Bed</span>
             </div>
             <div className="flex items-center gap-1 text-sm">
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="w-4 h-4 text-muted-foreground" />
               <span>Up to {room.capacity} guests</span>
             </div>
             <div className="flex items-center gap-1 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="w-4 h-4 text-muted-foreground" />
               <span>{room.location}</span>
             </div>
           </div>
@@ -91,17 +91,17 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Description</h2>
-            <p className="text-muted-foreground mb-4">{room.description}</p>
+            <h2 className="mb-4 text-2xl font-semibold">Description</h2>
+            <p className="mb-4 text-muted-foreground">{room.description}</p>
             <p className="text-muted-foreground">{room.longDescription}</p>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Amenities</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <h2 className="mb-4 text-2xl font-semibold">Amenities</h2>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               {room.amenities.map((amenity) => (
                 <div key={amenity} className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="w-4 h-4 text-primary" />
                   <span>{amenity}</span>
                 </div>
               ))}
@@ -112,15 +112,15 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
         <div className="lg:col-span-1">
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold mb-2">
+              <div className="mb-2 text-2xl font-bold">
                 {formatCurrency(room.pricePerNight)}{" "}
                 <span className="text-sm font-normal text-muted-foreground">
                   / night
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-                <CreditCard className="h-4 w-4" />
+              <div className="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
+                <CreditCard className="w-4 h-4" />
                 <span>No prepayment needed – pay at the property</span>
               </div>
 
@@ -129,14 +129,14 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Check-in</label>
                     <div className="flex items-center gap-2 p-2 border rounded-md">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span>Select date</span>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Check-out</label>
                     <div className="flex items-center gap-2 p-2 border rounded-md">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span>Select date</span>
                     </div>
                   </div>
@@ -145,7 +145,7 @@ export default function RoomDetailPage({ params }: { params: { id: string } }) {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Guests</label>
                   <div className="flex items-center gap-2 p-2 border rounded-md">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <Users className="w-4 h-4 text-muted-foreground" />
                     <span>2 Adults, 0 Children</span>
                   </div>
                 </div>

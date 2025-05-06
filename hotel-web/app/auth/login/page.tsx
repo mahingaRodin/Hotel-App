@@ -37,14 +37,28 @@ export default function LoginPage() {
       const response = await login(email, password);
       console.log("Login response:", response);
 
-      
-      // Handle successful login
-      router.push(
-  void: response && typeof response === 'object' && 'userRole' in response && (response as {userRole?: string}).userRole === "ADMIN"
-    ? "/admin"
-    : "/dashboard"
-);
+      // Option 1: Use void operator to explicitly ignore the Promise
+      void router.push(
+        response &&
+          typeof response === "object" &&
+          "userRole" in response &&
+          (response as { userRole?: string }).userRole === "ADMIN"
+          ? "/admin"
+          : "/dashboard"
+      );
 
+      // Option 2: Use an async function
+      async function handleNavigation() {
+        await router.push(
+          response &&
+            typeof response === "object" &&
+            "userRole" in response &&
+            (response as { userRole?: string }).userRole === "ADMIN"
+            ? "/admin/dashboard"
+            : "/dashboard/bookings"
+        );
+      }
+      void handleNavigation();
     } catch (error) {
       console.error("Login error:", error);
       toast({
