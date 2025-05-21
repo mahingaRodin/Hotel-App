@@ -41,14 +41,14 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signupUser(@RequestBody SignupRequest signupRequest) {
-        try {
-            UserDto createdUser = authService.createUser(signupRequest);
-            return new ResponseEntity<>(createdUser, HttpStatus.OK);
-        } catch (EntityExistsException entityExistsException) {
-            return new ResponseEntity<>("User Already Exists!", HttpStatus.NOT_ACCEPTABLE);
-        } catch (Exception e) {
-            return new ResponseEntity<>("User Not Created. Please try again later", HttpStatus.BAD_REQUEST);
-        }
+            try {
+                UserDto createdUser = authService.createUser(signupRequest);
+                return new ResponseEntity<>(createdUser, HttpStatus.OK);
+            } catch (EntityExistsException entityExistsException) {
+                return new ResponseEntity<>("User Already Exists!", HttpStatus.NOT_ACCEPTABLE);
+            } catch (Exception e) {
+                return new ResponseEntity<>("User Not Created. Please try again later", HttpStatus.BAD_REQUEST);
+            }
     }
 
     @PostMapping("/login")
