@@ -26,16 +26,25 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function UserBookingsPage() {
-  const [bookingsData, setBookingsData] =
-    useState<PaginatedResponse<BookingWithRoom> | null>(null);
+  const [bookingsData, setBookingsData] = useState<
+    PaginatedResponse<BookingWithRoom>
+  >({
+    content: [],
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+    number: 0,
+    first: true,
+    last: true,
+    empty: true,
+  });
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const data = await getUserBookings(currentPage);
+        const data = await getUserBookings(0);
         setBookingsData(data);
       } catch (error) {
         toast({
@@ -43,23 +52,39 @@ export default function UserBookingsPage() {
           description: "Failed to load your bookings. Please try again.",
           variant: "destructive",
         });
+        setBookingsData({
+          content: [],
+          totalPages: 0,
+          totalElements: 0,
+          size: 10,
+          number: 0,
+          first: true,
+          last: true,
+          empty: true,
+        });
       } finally {
         setLoading(false);
       }
     }
 
     fetchBookings();
-  }, [toast, currentPage]);
+  }, [toast]);
 
   const handlePreviousPage = () => {
-    if (bookingsData && !bookingsData.first) {
-      setCurrentPage((prev) => prev - 1);
+    if (bookingsData.content && !bookingsData.first) {
+      setBookingsData((prev) => ({
+        ...prev,
+        number: prev.number - 1,
+      }));
     }
   };
 
   const handleNextPage = () => {
-    if (bookingsData && !bookingsData.last) {
-      setCurrentPage((prev) => prev + 1);
+    if (bookingsData.content && !bookingsData.last) {
+      setBookingsData((prev) => ({
+        ...prev,
+        number: prev.number + 1,
+      }));
     }
   };
 
@@ -74,14 +99,14 @@ export default function UserBookingsPage() {
     );
   }
 
-  if (!bookingsData || bookingsData.empty) {
+  if (!bookingsData.content || bookingsData.empty) {
     return (
       <div className="container py-8 mx-auto">
         <h1 className="mb-8 text-3xl font-bold">My Bookings</h1>
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="flex flex-col justify-center items-center py-12">
             <div className="space-y-4 text-center">
-              <Calendar className="w-12 h-12 mx-auto text-muted-foreground" />
+              <Calendar className="mx-auto w-12 h-12 text-muted-foreground" />
               <h2 className="text-xl font-semibold">No bookings found</h2>
               <p className="text-muted-foreground">
                 You haven't made any bookings yet.
@@ -123,18 +148,18 @@ export default function UserBookingsPage() {
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           {formatDate(booking.checkIn)} -{" "}
                           {formatDate(booking.checkOut)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">{booking.guests} guests</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <BedDouble className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           Room capacity: {booking.room.capacity}
@@ -142,13 +167,13 @@ export default function UserBookingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <CreditCard className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
                           Total: {formatCurrency(booking.totalPrice)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <div
                           className={`px-2 py-1 text-xs rounded-full ${
                             booking.status === "APPROVED"
@@ -185,14 +210,14 @@ export default function UserBookingsPage() {
 
       {/* Pagination */}
       {bookingsData.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-8">
+        <div className="flex gap-4 justify-center items-center mt-8">
           <Button
             variant="outline"
             size="sm"
             onClick={handlePreviousPage}
             disabled={bookingsData.first}
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <ChevronLeft className="mr-1 w-4 h-4" />
             Previous
           </Button>
           <span className="text-sm">
@@ -205,7 +230,7 @@ export default function UserBookingsPage() {
             disabled={bookingsData.last}
           >
             Next
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <ChevronRight className="ml-1 w-4 h-4" />
           </Button>
         </div>
       )}

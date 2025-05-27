@@ -96,7 +96,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: response.userRole,
       });
 
-      router.push(response.userRole === "ADMIN" ? "/admin" : "/dashboard");
+      // Redirect based on role
+      if (response.userRole === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -106,8 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     try {
       await apiRegister({ name, email, password });
-      await login(email, password);
-      router.push("/dashboard");
+      // Redirect to login page instead of auto-login
+      router.push("/auth/login");
     } catch (error) {
       console.error("Registration error:", error);
       throw error;

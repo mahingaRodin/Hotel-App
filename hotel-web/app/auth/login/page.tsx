@@ -32,33 +32,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log("Attempting login with:", { email, password });
-
-      const response = await login(email, password);
-      console.log("Login response:", response);
-
-      // Option 1: Use void operator to explicitly ignore the Promise
-      void router.push(
-        response &&
-          typeof response === "object" &&
-          "userRole" in response &&
-          (response as { userRole?: string }).userRole === "ADMIN"
-          ? "/admin"
-          : "/dashboard"
-      );
-
-      // Option 2: Use an async function
-      async function handleNavigation() {
-        await router.push(
-          response &&
-            typeof response === "object" &&
-            "userRole" in response &&
-            (response as { userRole?: string }).userRole === "ADMIN"
-            ? "/admin/dashboard"
-            : "/dashboard/bookings"
-        );
-      }
-      void handleNavigation();
+      await login(email, password);
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -94,7 +68,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"

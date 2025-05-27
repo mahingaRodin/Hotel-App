@@ -45,7 +45,7 @@ export default function RegisterPage() {
       await register(name, email, password);
       toast({
         title: "Registration successful",
-        description: "Your account has been created successfully.",
+        description: "Please login with your new account.",
       });
     } catch (error) {
       toast({
@@ -81,7 +81,9 @@ export default function RegisterPage() {
                 type="text"
                 placeholder="John Doe"
                 value={name}
-                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setName(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setName(e.target.value)}
                 required
               />
             </div>
@@ -92,7 +94,9 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setEmail(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -102,7 +106,9 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setPassword(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -112,7 +118,9 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setConfirmPassword(e.target.value)}
+                onChange={(e: {
+                  target: { value: React.SetStateAction<string> };
+                }) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>

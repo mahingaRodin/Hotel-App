@@ -50,7 +50,6 @@ export interface AuthResponse {
 }
 
 export interface PaginatedResponse<T> {
-  data: SetStateAction<BookingWithRoom[]>;
   content: T[];
   totalPages: number;
   totalElements: number;

@@ -6,7 +6,7 @@ import type {
 } from "@/lib/types";
 
 // Base URL for the HotelServer API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9090";
 
 // Helper function to handle API responses
 async function handleResponse(response: Response) {
@@ -132,17 +132,42 @@ export async function getUserBookings(pageNumber = 0) {
     throw new Error("User not authenticated");
   }
 
-  const response = await fetch(
-    `${API_BASE_URL}/api/customer/bookings/${userId}/${pageNumber}`,
-    {
-      headers: getAuthHeaders(),
-      credentials: "include",
-    }
-  );
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/customer/bookings/${userId}/${pageNumber}`,
+      {
+        headers: getAuthHeaders(),
+        credentials: "include",
+      }
+    );
 
-  return handleResponse(response) as Promise<
-    PaginatedResponse<BookingWithRoom>
-  >;
+    const data = await handleResponse(response);
+
+    // Ensure the response has the correct structure
+    return {
+      content: data.content || [],
+      totalPages: data.totalPages || 0,
+      totalElements: data.totalElements || 0,
+      size: data.size || 10,
+      number: data.number || 0,
+      first: data.first || true,
+      last: data.last || true,
+      empty: data.empty || true,
+    } as PaginatedResponse<BookingWithRoom>;
+  } catch (error) {
+    console.error("Error fetching user bookings:", error);
+    // Return a default empty response structure
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: 10,
+      number: 0,
+      first: true,
+      last: true,
+      empty: true,
+    } as PaginatedResponse<BookingWithRoom>;
+  }
 }
 
 // Admin APIs
