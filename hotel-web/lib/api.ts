@@ -11,10 +11,21 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9090";
 // Helper function to handle API responses
 async function handleResponse(response: Response) {
   if (!response.ok) {
-    const error = await response.json().catch(() => null);
+    // Try to parse error message if available
+    const errorText = await response.text();
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      error = { message: errorText || "An error occurred while fetching data" };
+    }
     throw new Error(error?.message || "An error occurred while fetching data");
   }
-  return response.json();
+
+  // If response has no content, return null
+  const text = await response.text();
+  if (!text) return null;
+  return JSON.parse(text);
 }
 
 // Get JWT token from localStorage
@@ -96,12 +107,44 @@ export async function getAvailableRooms(pageNumber = 0) {
   const response = await fetch(
     `${API_BASE_URL}/api/customer/rooms/${pageNumber}`,
     {
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders?.(),
       credentials: "include",
     }
   );
+  if (!response.ok) throw new Error("Failed to fetch rooms");
+  const data = await response.json();
+  return {
+    content: (data.roomDtoList || []).map((room: any) => ({
+      ...room,
+      pricePerNight: room.price,
+      description: room.description || "",
+      capacity: room.capacity || 1,
+      type: room.type || "",
+      available: room.available !== undefined ? room.available : true,
+    })),
+    totalPages: data.totalPages || 1,
+    number: data.pageNumber || 0,
+  };
+}
 
-  return handleResponse(response) as Promise<PaginatedResponse<Room>>;
+export async function getCustomerRoomById(roomId: string) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/customer/get-room/${roomId}`,
+    {
+      headers: getAuthHeaders?.(),
+      credentials: "include",
+    }
+  );
+  if (!response.ok) throw new Error("Failed to fetch room");
+  const data = await response.json();
+  return {
+    ...data,
+    pricePerNight: data.price,
+    description: data.description || "",
+    capacity: data.capacity || 1,
+    type: data.type || "",
+    available: data.available !== undefined ? data.available : true,
+  };
 }
 
 export async function createBooking(bookingData: {
@@ -122,7 +165,9 @@ export async function createBooking(bookingData: {
     credentials: "include",
   });
 
-  return handleResponse(response);
+  if (!response.ok) throw new Error("Failed to create booking");
+  // Backend returns empty body on success
+  return { success: true };
 }
 
 export async function getUserBookings(pageNumber = 0) {
@@ -209,70 +254,120 @@ export async function getAllRooms(pageNumber = 0) {
       credentials: "include",
     }
   );
-
-  return handleResponse(response) as Promise<PaginatedResponse<Room>>;
+  if (!response.ok) throw new Error("Failed to fetch rooms");
+  const data = await response.json();
+  return {
+    content: (data.roomDtoList || []).map((room: any) => ({
+      ...room,
+      pricePerNight: room.price,
+      description: room.description || "",
+      capacity: room.capacity || 1,
+      type: room.type || "",
+      available: room.available !== undefined ? room.available : true,
+    })),
+    totalPages: data.totalPages || 1,
+    totalElements: data.totalElements || 0,
+    size: data.size || 10,
+    number: data.pageNumber || 0,
+    first: data.pageNumber === 0,
+    last: data.pageNumber + 1 === (data.totalPages || 1),
+    empty: (data.roomDtoList || []).length === 0,
+  };
 }
 
-export async function getRoomById(roomId: string) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/room/${roomId}`, {
-      headers: getAuthHeaders(),
-      credentials: "include",
-    });
-
-    return handleResponse(response) as Promise<Room>;
-  } catch (error) {
-    console.error("Failed to get room as admin, trying public access:", error);
-    // If admin access fails, try to get the room from the available rooms
-    // This is a workaround since the backend doesn't have a public endpoint for a single room
-    const availableRooms = await getAvailableRooms(0);
-    const room = availableRooms.content.find((room) => room.id === roomId);
-
-    if (!room) {
-      throw new Error("Room not found");
-    }
-
-    return room;
-  }
+export async function getAdminRoomById(roomId: string) {
+  const response = await fetch(`${API_BASE_URL}/api/admin/get-room/${roomId}`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to fetch room");
+  const data = await response.json();
+  return {
+    ...data,
+    pricePerNight: data.price,
+    description: data.description || "",
+    capacity: data.capacity || 1,
+    type: data.type || "",
+    available: data.available !== undefined ? data.available : true,
+  };
 }
 
 export async function createRoom(roomData: {
   name: string;
-  description: string;
-  capacity: number;
-  pricePerNight: number;
-  amenities: string[];
-  images: string[];
+  price: number;
+  type: string;
+  available?: boolean;
 }) {
-  const response = await fetch(`${API_BASE_URL}/api/admin/room`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(roomData),
-    credentials: "include",
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/room`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        ...roomData,
+        available: true, // Default to true for new rooms
+      }),
+      credentials: "include",
+    });
 
-  return handleResponse(response);
+    // If the response is empty but status is ok, consider it a success
+    if (response.status === 200 || response.status === 201) {
+      return { success: true, message: "Room created successfully" };
+    }
+
+    // Try to parse error response if available
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch (e) {
+      // If we can't parse the response as JSON, throw a generic error
+      throw new Error("Failed to create room");
+    }
+
+    throw new Error(errorData?.message || "Failed to create room");
+  } catch (error) {
+    console.error("Error creating room:", error);
+    throw error;
+  }
 }
 
 export async function updateRoom(
   roomId: string,
   roomData: {
     name?: string;
-    description?: string;
-    capacity?: number;
+    type?: string;
     pricePerNight?: number;
-    amenities?: string[];
-    images?: string[];
+    available?: boolean;
   }
 ) {
+  // Only send the fields your backend expects
+  const payload: any = {
+    name: roomData.name,
+    type: roomData.type,
+    price: roomData.pricePerNight, // map pricePerNight to price
+    available: roomData.available,
+  };
+
   const response = await fetch(`${API_BASE_URL}/api/admin/room/${roomId}`, {
     method: "PUT",
     headers: getAuthHeaders(),
-    body: JSON.stringify(roomData),
+    body: JSON.stringify(payload),
     credentials: "include",
   });
 
-  return handleResponse(response);
+  // If response is empty but status is ok, consider it a success
+  if (response.status === 200 || response.status === 204) {
+    return { success: true, message: "Room updated successfully" };
+  }
+
+  // Try to parse error response if available
+  let errorData;
+  try {
+    errorData = await response.json();
+  } catch (e) {
+    throw new Error("Failed to update room");
+  }
+
+  throw new Error(errorData?.message || "Failed to update room");
 }
 
 export async function deleteRoom(roomId: string) {
@@ -283,4 +378,31 @@ export async function deleteRoom(roomId: string) {
   });
 
   return handleResponse(response);
+}
+
+export async function getAllBookings(pageNumber = 0) {
+  // GET /api/admin/reservations/{pageNumber}
+  const response = await fetch(
+    `${API_BASE_URL}/api/admin/reservations/${pageNumber}`,
+    {
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }
+  );
+  if (!response.ok) throw new Error("Failed to fetch all bookings");
+  return response.json();
+}
+
+
+export async function getCustomerBookings(userId: number, pageNumber = 0) {
+  // GET /api/customer/bookings/{userId}/{pageNumber}
+  const response = await fetch(
+    `${API_BASE_URL}/api/customer/bookings/${userId}/${pageNumber}`,
+    {
+      headers: getAuthHeaders?.(),
+      credentials: "include",
+    }
+  );
+  if (!response.ok) throw new Error("Failed to fetch customer bookings");
+  return response.json();
 }

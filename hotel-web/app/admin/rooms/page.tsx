@@ -27,9 +27,16 @@ import {
 import Link from "next/link";
 
 export default function AdminRoomsPage() {
-  const [roomsData, setRoomsData] = useState<PaginatedResponse<Room> | null>(
-    null
-  );
+  const [roomsData, setRoomsData] = useState<PaginatedResponse<Room>>({
+    content: [],
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+    number: 0,
+    first: true,
+    last: true,
+    empty: true,
+  });
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -40,14 +47,17 @@ export default function AdminRoomsPage() {
     async function fetchRooms() {
       try {
         const data = await getAllRooms(currentPage);
+        console.log("Fetched rooms data:", data); // Debug log
         setRoomsData(data);
-        setFilteredRooms(data.content);
+        setFilteredRooms(data.content || []);
       } catch (error) {
+        console.error("Error fetching rooms:", error);
         toast({
           title: "Error",
           description: "Failed to load rooms. Please try again.",
           variant: "destructive",
         });
+        setFilteredRooms([]);
       } finally {
         setLoading(false);
       }
@@ -57,7 +67,7 @@ export default function AdminRoomsPage() {
   }, [toast, currentPage]);
 
   useEffect(() => {
-    if (roomsData) {
+    if (roomsData?.content) {
       if (searchQuery.trim() === "") {
         setFilteredRooms(roomsData.content);
       } else {
@@ -66,7 +76,8 @@ export default function AdminRoomsPage() {
           roomsData.content.filter(
             (room) =>
               room.name.toLowerCase().includes(query) ||
-              room.description.toLowerCase().includes(query)
+              (room.description &&
+                room.description.toLowerCase().includes(query))
           )
         );
       }
@@ -77,17 +88,16 @@ export default function AdminRoomsPage() {
     if (window.confirm("Are you sure you want to delete this room?")) {
       try {
         await deleteRoom(roomId);
-
+        toast({
+          title: "Success",
+          description: "Room deleted successfully",
+        });
         // Refresh the room list
         const data = await getAllRooms(currentPage);
         setRoomsData(data);
-        setFilteredRooms(data.content);
-
-        toast({
-          title: "Room deleted",
-          description: "The room has been deleted successfully.",
-        });
+        setFilteredRooms(data.content || []);
       } catch (error) {
+        console.error("Error deleting room:", error);
         toast({
           title: "Error",
           description: "Failed to delete room. Please try again.",
@@ -98,13 +108,13 @@ export default function AdminRoomsPage() {
   };
 
   const handlePreviousPage = () => {
-    if (roomsData && !roomsData.first) {
+    if (!roomsData.first) {
       setCurrentPage((prev) => prev - 1);
     }
   };
 
   const handleNextPage = () => {
-    if (roomsData && !roomsData.last) {
+    if (!roomsData.last) {
       setCurrentPage((prev) => prev + 1);
     }
   };
@@ -155,7 +165,7 @@ export default function AdminRoomsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Capacity</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Price per Night</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Description
@@ -174,7 +184,7 @@ export default function AdminRoomsPage() {
                   filteredRooms.map((room) => (
                     <TableRow key={room.id}>
                       <TableCell className="font-medium">{room.name}</TableCell>
-                      <TableCell>{room.capacity}</TableCell>
+                      <TableCell>{room.type}</TableCell>
                       <TableCell>
                         {formatCurrency(room.pricePerNight)}
                       </TableCell>
@@ -207,31 +217,29 @@ export default function AdminRoomsPage() {
           </div>
 
           {/* Pagination */}
-          {roomsData && roomsData.totalPages > 1 && (
-            <div className="flex gap-4 justify-center items-center mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePreviousPage}
-                disabled={roomsData.first}
-              >
-                <ChevronLeft className="mr-1 w-4 h-4" />
-                Previous
-              </Button>
-              <span className="text-sm">
-                Page {roomsData.number + 1} of {roomsData.totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-                disabled={roomsData.last}
-              >
-                Next
-                <ChevronRight className="ml-1 w-4 h-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-4 justify-center items-center mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousPage}
+              disabled={roomsData.first}
+            >
+              <ChevronLeft className="mr-1 w-4 h-4" />
+              Previous
+            </Button>
+            <span className="text-sm">
+              Page {roomsData.number + 1} of {roomsData.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={roomsData.last}
+            >
+              Next
+              <ChevronRight className="ml-1 w-4 h-4" />
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

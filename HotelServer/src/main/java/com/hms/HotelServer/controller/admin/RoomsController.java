@@ -33,6 +33,7 @@ public class RoomsController {
 
     }
 
+    @GetMapping("/get-room/{id}")
     public ResponseEntity<?> getRoomById(@PathVariable Long id) {
         try{
             return ResponseEntity.ok(roomsService.getRoomById(id));

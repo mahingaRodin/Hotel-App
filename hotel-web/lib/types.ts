@@ -17,6 +17,8 @@ export interface Room {
   images: string[];
   createdAt: string;
   updatedAt: string;
+  type: string;
+  available: boolean;
 }
 
 export interface Booking {
